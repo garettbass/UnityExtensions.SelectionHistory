@@ -1,0 +1,10 @@
+{
+    "name": "UnityExtensions.SelectionHistory.Editor",
+    "references": [],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}
