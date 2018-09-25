@@ -23,11 +23,13 @@ namespace UnityExtensions
 
         private static Object[] s_oldSelection;
 
-        private static readonly Stack<Object[]> s_backward =
-            new Stack<Object[]>();
+        private static readonly List<Object[]> s_backward =
+            new List<Object[]>();
 
-        private static readonly Stack<Object[]> s_forward =
-            new Stack<Object[]>();
+        private static readonly List<Object[]> s_forward =
+            new List<Object[]>();
+
+        private const int MaxStackCount = 128;
 
         [InitializeOnLoadMethod]
         private static void InitializeOnLoad()
@@ -90,6 +92,26 @@ namespace UnityExtensions
         {
             s_navigationType = navigationType;
             Selection.objects = selection;
+        }
+
+        private static void Push<T>(this List<T> stack, T item)
+        {
+            stack.Insert(0, item);
+            for (int count = 0; (count = stack.Count) > MaxStackCount;)
+            {
+                stack.RemoveAt(count - 1);
+            }
+        }
+
+        private static T Pop<T>(this List<T> stack)
+        {
+            var item = default(T);
+            if (stack.Count > 0)
+            {
+                item = stack[0];
+                stack.RemoveAt(0);
+            }
+            return item;
         }
 
     }
