@@ -119,7 +119,7 @@ namespace UnityExtensions
             var imguiContainer =
                 (IMGUIContainer)
                 GUIView_imguiContainer
-                .GetValue(toolbar);
+                .GetValue(toolbar, null);
 
             var onGUIHandler =
                 (Action)
