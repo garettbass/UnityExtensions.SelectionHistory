@@ -157,9 +157,9 @@ namespace UnityExtensions
             ,
             nextTooltip =
 #if UNITY_EDITOR_OSX
-                "Select Previous \u2318]"
+                "Select Next \u2318]"
 #else
-                "Select Previous ^]"
+                "Select Next ^]"
 #endif
             ;
 
