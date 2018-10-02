@@ -300,12 +300,12 @@ namespace UnityExtensions
 
         public static bool CanNavigateBackward()
         {
-            return s_backward.Count > 0;
+            return s_backward.Any(objs => objs.Any(obj => obj != null));
         }
 
         public static bool CanNavigateForward()
         {
-            return s_forward.Count > 0;
+            return s_forward.Any(objs => objs.Any(obj => obj != null));
         }
 
         //----------------------------------------------------------------------
@@ -316,10 +316,14 @@ namespace UnityExtensions
             priority: -29)]
         public static void NavigateBackward()
         {
-            if (CanNavigateBackward())
+            while (CanNavigateBackward())
             {
-                var oldSelection = s_backward.Pop();
-                NavigateTo(NavigationType.Backward, oldSelection);
+                var oldSelection = s_backward.Pop().RemoveNullObjects();
+                if (oldSelection.Length > 0)
+                {
+                    NavigateTo(NavigationType.Backward, oldSelection);
+                    return;
+                }
             }
         }
 
@@ -329,10 +333,14 @@ namespace UnityExtensions
             priority: -28)]
         public static void NavigateForward()
         {
-            if (CanNavigateForward())
+            while (CanNavigateForward())
             {
-                var oldSelection = s_forward.Pop();
-                NavigateTo(NavigationType.Forward, oldSelection);
+                var oldSelection = s_forward.Pop().RemoveNullObjects();
+                if (oldSelection.Length > 0)
+                {
+                    NavigateTo(NavigationType.Forward, oldSelection);
+                    return;
+                }
             }
         }
 
@@ -366,6 +374,12 @@ namespace UnityExtensions
                 stack.RemoveAt(0);
             }
             return item;
+        }
+
+        private static Object[] RemoveNullObjects(
+            this IEnumerable<Object> objects)
+        {
+            return objects.Where(obj => obj != null).ToArray();
         }
 
     }
