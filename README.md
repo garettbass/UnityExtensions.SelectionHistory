@@ -1,6 +1,6 @@
 # UnityExtensions.SelectionHistory
 
-Adds menu items to navigate back and forward in the Unity Editor, and handy back/forward buttons to the toolbar.
+Adds menu items to navigate back and forward in the Unity Editor, and handy back/forward buttons to the toolbar.  Mouse buttons 3 & 4 are mapped to back and forward respectively.
 
 ![Menu Items](Menu-Items.png)
 

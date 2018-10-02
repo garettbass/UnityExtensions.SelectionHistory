@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -60,6 +61,36 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
+        private static FieldInfo GUIUtility_processEvent =
+            typeof(GUIUtility)
+            .GetField(
+                "processEvent",
+                BindingFlags.Static |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
+
+        private static event Func<int, IntPtr, bool> processEvent
+        {
+            add
+            {
+                var processEvent =
+                    (Delegate)
+                    GUIUtility_processEvent.GetValue(null);
+                processEvent = Delegate.Combine(processEvent, value);
+                GUIUtility_processEvent.SetValue(null, processEvent);
+            }
+            remove
+            {
+                var processEvent =
+                    (Delegate)
+                    GUIUtility_processEvent.GetValue(null);
+                processEvent = Delegate.Remove(processEvent, value);
+                GUIUtility_processEvent.SetValue(null, processEvent);
+            }
+        }
+
+        //----------------------------------------------------------------------
+
         private static FieldInfo IMGUIContainer_m_OnGUIHandler =
             typeof(IMGUIContainer)
             .GetField(
@@ -76,6 +107,7 @@ namespace UnityExtensions
             s_oldSelection = Selection.objects;
             Selection.selectionChanged += OnSelectionChanged;
             EditorApplication.update += WaitForUnityEditorToolbar;
+            processEvent += OnProcessEvent;
         }
 
         //----------------------------------------------------------------------
@@ -116,20 +148,20 @@ namespace UnityExtensions
 
         private static void AttachToUnityEditorToolbar(object toolbar)
         {
-            var imguiContainer =
+            var toolbarGUIContainer =
                 (IMGUIContainer)
                 GUIView_imguiContainer
                 .GetValue(toolbar, null);
 
-            var onGUIHandler =
+            var toolbarGUIHandler =
                 (Action)
                 IMGUIContainer_m_OnGUIHandler
-                .GetValue(imguiContainer);
+                .GetValue(toolbarGUIContainer);
 
-            onGUIHandler += OnGUI;
+            toolbarGUIHandler += OnGUI;
 
             IMGUIContainer_m_OnGUIHandler
-            .SetValue(imguiContainer, onGUIHandler);
+            .SetValue(toolbarGUIContainer, toolbarGUIHandler);
         }
 
         //----------------------------------------------------------------------
@@ -148,20 +180,8 @@ namespace UnityExtensions
             };
 
             public const string
-            prevTooltip =
-#if UNITY_EDITOR_OSX
-                "Select Previous \u2318["
-#else
-                "Select Previous ^["
-#endif
-            ,
-            nextTooltip =
-#if UNITY_EDITOR_OSX
-                "Select Next \u2318]"
-#else
-                "Select Next ^]"
-#endif
-            ;
+            prevTooltip = "Select Previous",
+            nextTooltip = "Select Next";
 
             public readonly GUIContent
             prevButtonContent = new GUIContent("\u2039", prevTooltip),
@@ -238,6 +258,38 @@ namespace UnityExtensions
                 nextRect.y -= 1;
                 black.Draw(nextRect, nextContent, no, no, no, no);
                 EditorGUI.EndDisabledGroup();
+            }
+        }
+
+        //----------------------------------------------------------------------
+
+        private static bool OnProcessEvent(
+            int instanceID,
+            IntPtr nativeEventPtr)
+        {
+            HandleMouseButtonEvents();
+            return false;
+        }
+
+        private static void HandleMouseButtonEvents()
+        {
+            var currentEvent = Event.current;
+            var currentEventType = currentEvent.type;
+            var clickCount = currentEvent.clickCount;
+            var isMouseUp = currentEventType == EventType.MouseUp;
+            if (isMouseUp && clickCount == 1)
+            {
+                switch (currentEvent.button)
+                {
+                    case 3:
+                        NavigateBackward();
+                        Event.current.Use();
+                        break;
+                    case 4:
+                        NavigateForward();
+                        Event.current.Use();
+                        break;
+                }
             }
         }
 
