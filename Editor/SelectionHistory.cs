@@ -125,6 +125,9 @@ namespace UnityExtensions
             switch (navigationType)
             {
                 case NavigationType.External:
+                    s_forward.Clear();
+                    s_backward.Push(oldSelection);
+                    break;
                 case NavigationType.Forward:
                     s_backward.Push(oldSelection);
                     break;
