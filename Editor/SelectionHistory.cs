@@ -17,8 +17,8 @@ namespace UnityExtensions
         private enum NavigationType
         {
             Backward = -1,
-            External =  0,
-            Forward  = +1,
+            External = 0,
+            Forward = +1,
         }
 
         private static NavigationType s_navigationType;
@@ -139,16 +139,18 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
-        private class GUIResources {
+        private class GUIResources
+        {
 
             public readonly GUIStyle
-            commandStyle = new GUIStyle("Command"),
             commandLeftStyle = new GUIStyle("CommandLeft"),
             commandRightStyle = new GUIStyle("CommandRight"),
-            blackBoldTextStyle = new GUIStyle(EditorStyles.boldLabel) {
+            blackBoldTextStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
                 fontSize = 26,
             },
-            whiteBoldTextStyle = new GUIStyle(EditorStyles.whiteBoldLabel) {
+            whiteBoldTextStyle = new GUIStyle(EditorStyles.whiteBoldLabel)
+            {
                 fontSize = 26,
             };
 
@@ -178,7 +180,8 @@ namespace UnityExtensions
 
         private static void OnGUI()
         {
-            try {
+            try
+            {
                 var prevEnabled = CanNavigateBackward();
                 var nextEnabled = CanNavigateForward();
 
