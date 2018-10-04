@@ -61,36 +61,6 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
-        private static FieldInfo GUIUtility_processEvent =
-            typeof(GUIUtility)
-            .GetField(
-                "processEvent",
-                BindingFlags.Static |
-                BindingFlags.Public |
-                BindingFlags.NonPublic);
-
-        private static event Func<int, IntPtr, bool> processEvent
-        {
-            add
-            {
-                var processEvent =
-                    (Delegate)
-                    GUIUtility_processEvent.GetValue(null);
-                processEvent = Delegate.Combine(processEvent, value);
-                GUIUtility_processEvent.SetValue(null, processEvent);
-            }
-            remove
-            {
-                var processEvent =
-                    (Delegate)
-                    GUIUtility_processEvent.GetValue(null);
-                processEvent = Delegate.Remove(processEvent, value);
-                GUIUtility_processEvent.SetValue(null, processEvent);
-            }
-        }
-
-        //----------------------------------------------------------------------
-
         private static FieldInfo IMGUIContainer_m_OnGUIHandler =
             typeof(IMGUIContainer)
             .GetField(
@@ -208,69 +178,110 @@ namespace UnityExtensions
 
         private static void OnGUI()
         {
-            var prevEnabled = CanNavigateBackward();
-            var nextEnabled = CanNavigateForward();
+            try {
+                var prevEnabled = CanNavigateBackward();
+                var nextEnabled = CanNavigateForward();
 
-            var guiRect = new Rect(370, 5, 32, 24);
-            {
-                var prevRect = guiRect;
-                var prevStyle = gui.commandLeftStyle;
-                var prevContent = gui.prevButtonContent;
+                var guiRect = new Rect(370, 5, 32, 24);
+                {
+                    var prevRect = guiRect;
+                    var prevStyle = gui.commandLeftStyle;
+                    var prevContent = gui.prevButtonContent;
 
-                EditorGUI.BeginDisabledGroup(!prevEnabled);
-                if (GUI.Button(prevRect, prevContent, prevStyle))
-                    NavigateBackward();
-                EditorGUI.EndDisabledGroup();
+                    EditorGUI.BeginDisabledGroup(!prevEnabled);
+                    if (GUI.Button(prevRect, prevContent, prevStyle))
+                        NavigateBackward();
+                    EditorGUI.EndDisabledGroup();
 
-                var nextRect = guiRect;
-                nextRect.x += guiRect.width;
-                var nextStyle = gui.commandRightStyle;
-                var nextContent = gui.nextButtonContent;
+                    var nextRect = guiRect;
+                    nextRect.x += guiRect.width;
+                    var nextStyle = gui.commandRightStyle;
+                    var nextContent = gui.nextButtonContent;
 
-                EditorGUI.BeginDisabledGroup(!nextEnabled);
-                if (GUI.Button(nextRect, nextContent, nextStyle))
-                    NavigateForward();
-                EditorGUI.EndDisabledGroup();
+                    EditorGUI.BeginDisabledGroup(!nextEnabled);
+                    if (GUI.Button(nextRect, nextContent, nextStyle))
+                        NavigateForward();
+                    EditorGUI.EndDisabledGroup();
+                }
+
+                var isRepaint = Event.current.type == EventType.Repaint;
+                if (isRepaint)
+                {
+                    var rowRect = guiRect;
+                    rowRect.y -= 7;
+                    var black = gui.blackBoldTextStyle;
+                    var white = gui.whiteBoldTextStyle;
+
+                    var no = false;
+                    var prevRect = rowRect;
+                    var prevContent = gui.prevButtonContent;
+                    prevRect.x += 10;
+                    prevRect.size = black.CalcSize(prevContent);
+                    EditorGUI.BeginDisabledGroup(!prevEnabled);
+                    white.Draw(prevRect, prevContent, no, no, no, no);
+                    prevRect.y -= 1;
+                    black.Draw(prevRect, prevContent, no, no, no, no);
+                    EditorGUI.EndDisabledGroup();
+
+                    var nextRect = rowRect;
+                    var nextContent = gui.nextButtonContent;
+                    nextRect.x += 42;
+                    nextRect.size = black.CalcSize(nextContent);
+                    EditorGUI.BeginDisabledGroup(!nextEnabled);
+                    white.Draw(nextRect, nextContent, no, no, no, no);
+                    nextRect.y -= 1;
+                    black.Draw(nextRect, nextContent, no, no, no, no);
+                    EditorGUI.EndDisabledGroup();
+                }
             }
-
-            var isRepaint = Event.current.type == EventType.Repaint;
-            if (isRepaint)
+            catch (Exception ex)
             {
-                var rowRect = guiRect;
-                rowRect.y -= 7;
-                var black = gui.blackBoldTextStyle;
-                var white = gui.whiteBoldTextStyle;
-
-                var no = false;
-                var prevRect = rowRect;
-                var prevContent = gui.prevButtonContent;
-                prevRect.x += 10;
-                prevRect.size = black.CalcSize(prevContent);
-                EditorGUI.BeginDisabledGroup(!prevEnabled);
-                white.Draw(prevRect, prevContent, no, no, no, no);
-                prevRect.y -= 1;
-                black.Draw(prevRect, prevContent, no, no, no, no);
-                EditorGUI.EndDisabledGroup();
-
-                var nextRect = rowRect;
-                var nextContent = gui.nextButtonContent;
-                nextRect.x += 42;
-                nextRect.size = black.CalcSize(nextContent);
-                EditorGUI.BeginDisabledGroup(!nextEnabled);
-                white.Draw(nextRect, nextContent, no, no, no, no);
-                nextRect.y -= 1;
-                black.Draw(nextRect, nextContent, no, no, no, no);
-                EditorGUI.EndDisabledGroup();
+                Debug.LogException(ex);
             }
         }
 
         //----------------------------------------------------------------------
 
+        private static FieldInfo GUIUtility_processEvent =
+            typeof(GUIUtility)
+            .GetField(
+                "processEvent",
+                BindingFlags.Static |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
+
+        private static event Func<int, IntPtr, bool> processEvent
+        {
+            add
+            {
+                var processEvent =
+                    (Delegate)
+                    GUIUtility_processEvent.GetValue(null);
+                processEvent = Delegate.Combine(value, processEvent);
+                GUIUtility_processEvent.SetValue(null, processEvent);
+            }
+            remove
+            {
+                var processEvent =
+                    (Delegate)
+                    GUIUtility_processEvent.GetValue(null);
+                processEvent = Delegate.Remove(processEvent, value);
+                GUIUtility_processEvent.SetValue(null, processEvent);
+            }
+        }
+
         private static bool OnProcessEvent(
             int instanceID,
             IntPtr nativeEventPtr)
         {
-            HandleMouseButtonEvents();
+            try
+            {
+                HandleMouseButtonEvents();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
             return false;
         }
 
