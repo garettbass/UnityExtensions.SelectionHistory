@@ -43,8 +43,8 @@ namespace UnityExtensions
         [Serializable]
         public struct SerializedHistory
         {
-            public const string Key =
-                "UnityExtensions.SelectionHistory.SerializedHistory";
+            private static string Key =>
+                $"UnityExtensions.SelectionHistory({Application.dataPath})";
 
             public SerializedSelection[] backward;
             public SerializedSelection[] forward;
