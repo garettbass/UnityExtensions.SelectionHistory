@@ -51,7 +51,8 @@ namespace UnityExtensions
 
             public static void Save()
             {
-                var history = new SerializedHistory {
+                var history = new SerializedHistory
+                {
                     backward = Serialize(s_backward),
                     forward = Serialize(s_forward),
                 };
@@ -97,8 +98,8 @@ namespace UnityExtensions
         private enum NavigationType
         {
             Backward = -1,
-            External =  0,
-            Forward  = +1,
+            External = 0,
+            Forward = +1,
         }
 
         private static NavigationType s_navigationType;
@@ -256,32 +257,39 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
-        private class GUIResources {
+        private class GUIResources
+        {
+
+#if UNITY_EDITOR_WIN
+            public const int GlyphFontSize = 25;
+#else
+            public const int GlyphFontSize = 26;
+#endif
 
             public readonly GUIStyle
             commandStyle = new GUIStyle("Command"),
             commandLeftStyle = new GUIStyle("CommandLeft"),
             commandRightStyle = new GUIStyle("CommandRight"),
-            blackBoldTextStyle = new GUIStyle(EditorStyles.boldLabel) {
-                fontSize = 26,
+            blackBoldTextStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = GlyphFontSize,
             },
-            whiteBoldTextStyle = new GUIStyle(EditorStyles.whiteBoldLabel) {
-                fontSize = 26,
+            whiteBoldTextStyle = new GUIStyle(EditorStyles.whiteBoldLabel)
+            {
+                fontSize = GlyphFontSize,
             };
 
             public const string
-            prevTooltip = "Select Previous",
-            nextTooltip = "Select Next";
+            prevTooltip = "Navigate to Previous Selection",
+            nextTooltip = "Navigate to Next Selection";
 
             public readonly GUIContent
-            prevButtonContent = new GUIContent("\u2039", prevTooltip),
-            nextButtonContent = new GUIContent("\u203A", nextTooltip);
+            prevButtonContent = new GUIContent(" ", prevTooltip),
+            nextButtonContent = new GUIContent(" ", nextTooltip);
 
-            public readonly GUIContent[]
-            navigationButtonContents = new GUIContent[] {
-                new GUIContent(" ", prevTooltip),
-                new GUIContent(" ", nextTooltip),
-            };
+            public readonly GUIContent
+            prevGlyphContent = new GUIContent("\u2039", prevTooltip),
+            nextGlyphContent = new GUIContent("\u203A", nextTooltip);
 
         }
 
@@ -323,14 +331,20 @@ namespace UnityExtensions
             var isRepaint = Event.current.type == EventType.Repaint;
             if (isRepaint)
             {
-                var rowRect = guiRect;
-                rowRect.y -= 7;
                 var black = gui.blackBoldTextStyle;
                 var white = gui.whiteBoldTextStyle;
 
+                var rowRect = guiRect;
+#if UNITY_EDITOR_WIN
+                rowRect.x -= 3;
+                rowRect.y -= 5;
+#else
+                rowRect.y -= 7;
+#endif
+
                 var no = false;
                 var prevRect = rowRect;
-                var prevContent = gui.prevButtonContent;
+                var prevContent = gui.prevGlyphContent;
                 prevRect.x += 10;
                 prevRect.size = black.CalcSize(prevContent);
                 EditorGUI.BeginDisabledGroup(!prevEnabled);
@@ -340,7 +354,7 @@ namespace UnityExtensions
                 EditorGUI.EndDisabledGroup();
 
                 var nextRect = rowRect;
-                var nextContent = gui.nextButtonContent;
+                var nextContent = gui.nextGlyphContent;
                 nextRect.x += 42;
                 nextRect.size = black.CalcSize(nextContent);
                 EditorGUI.BeginDisabledGroup(!nextEnabled);

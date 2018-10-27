@@ -1,0 +1,13 @@
+{
+    "name": "com.unityextensions.selectionhistory",
+    "displayName": "UnityExtensions.SelectionHistory",
+    "version": "1.0.0",
+    "unity": "2018.1",
+    "description": "Navigate the Unity editor with browser-style back/forward buttons, keyboard shortcuts, and mouse button support.",
+    "keywords": [
+        "selection",
+        "history",
+        "navigation"
+    ],
+    "category": "Unity"
+}
