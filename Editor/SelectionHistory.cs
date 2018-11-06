@@ -116,32 +116,6 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
-        private static Type Toolbar =
-            typeof(EditorGUI)
-            .Assembly
-            .GetType("UnityEditor.Toolbar");
-
-        private static FieldInfo Toolbar_get =
-            Toolbar
-            .GetField("get");
-
-        //----------------------------------------------------------------------
-
-        private static Type GUIView =
-            typeof(EditorGUI)
-            .Assembly
-            .GetType("UnityEditor.GUIView");
-
-        private static PropertyInfo GUIView_imguiContainer =
-            GUIView
-            .GetProperty(
-                "imguiContainer",
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.NonPublic);
-
-        //----------------------------------------------------------------------
-
         private static FieldInfo GUIUtility_processEvent =
             typeof(GUIUtility)
             .GetField(
@@ -172,16 +146,6 @@ namespace UnityExtensions
 
         //----------------------------------------------------------------------
 
-        private static FieldInfo IMGUIContainer_m_OnGUIHandler =
-            typeof(IMGUIContainer)
-            .GetField(
-                "m_OnGUIHandler",
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.NonPublic);
-
-        //----------------------------------------------------------------------
-
         [InitializeOnLoadMethod]
         private static void InitializeOnLoad()
         {
@@ -189,7 +153,6 @@ namespace UnityExtensions
             s_oldSelection = Selection.objects;
             AssemblyReloadEvents.beforeAssemblyReload += BeforeAssemblyReload;
             Selection.selectionChanged += OnSelectionChanged;
-            EditorApplication.update += WaitForUnityEditorToolbar;
             processEvent += OnProcessEvent;
         }
 
@@ -222,146 +185,6 @@ namespace UnityExtensions
                 case NavigationType.Backward:
                     s_forward.Push(oldSelection);
                     break;
-            }
-        }
-
-        //----------------------------------------------------------------------
-
-        private static void WaitForUnityEditorToolbar()
-        {
-            var toolbar = Toolbar_get.GetValue(null);
-            if (toolbar == null)
-                return;
-
-            EditorApplication.update -= WaitForUnityEditorToolbar;
-            AttachToUnityEditorToolbar(toolbar);
-        }
-
-        private static void AttachToUnityEditorToolbar(object toolbar)
-        {
-            var toolbarGUIContainer =
-                (IMGUIContainer)
-                GUIView_imguiContainer
-                .GetValue(toolbar, null);
-
-            var toolbarGUIHandler =
-                (Action)
-                IMGUIContainer_m_OnGUIHandler
-                .GetValue(toolbarGUIContainer);
-
-            toolbarGUIHandler += OnGUI;
-
-            IMGUIContainer_m_OnGUIHandler
-            .SetValue(toolbarGUIContainer, toolbarGUIHandler);
-        }
-
-        //----------------------------------------------------------------------
-
-        private class GUIResources
-        {
-
-#if UNITY_EDITOR_WIN
-            public const int GlyphFontSize = 25;
-#else
-            public const int GlyphFontSize = 26;
-#endif
-
-            public readonly GUIStyle
-            commandStyle = new GUIStyle("Command"),
-            commandLeftStyle = new GUIStyle("CommandLeft"),
-            commandRightStyle = new GUIStyle("CommandRight"),
-            blackBoldTextStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = GlyphFontSize,
-            },
-            whiteBoldTextStyle = new GUIStyle(EditorStyles.whiteBoldLabel)
-            {
-                fontSize = GlyphFontSize,
-            };
-
-            public const string
-            prevTooltip = "Navigate to Previous Selection",
-            nextTooltip = "Navigate to Next Selection";
-
-            public readonly GUIContent
-            prevButtonContent = new GUIContent(" ", prevTooltip),
-            nextButtonContent = new GUIContent(" ", nextTooltip);
-
-            public readonly GUIContent
-            prevGlyphContent = new GUIContent("\u2039", prevTooltip),
-            nextGlyphContent = new GUIContent("\u203A", nextTooltip);
-
-        }
-
-        private static GUIResources s_gui;
-        private static GUIResources gui
-        {
-            get { return s_gui ?? (s_gui = new GUIResources()); }
-        }
-
-        //----------------------------------------------------------------------
-
-        private static void OnGUI()
-        {
-            var prevEnabled = CanNavigateBackward();
-            var nextEnabled = CanNavigateForward();
-
-            var guiRect = new Rect(370, 5, 32, 24);
-            {
-                var prevRect = guiRect;
-                var prevStyle = gui.commandLeftStyle;
-                var prevContent = gui.prevButtonContent;
-
-                EditorGUI.BeginDisabledGroup(!prevEnabled);
-                if (GUI.Button(prevRect, prevContent, prevStyle))
-                    NavigateBackward();
-                EditorGUI.EndDisabledGroup();
-
-                var nextRect = guiRect;
-                nextRect.x += guiRect.width;
-                var nextStyle = gui.commandRightStyle;
-                var nextContent = gui.nextButtonContent;
-
-                EditorGUI.BeginDisabledGroup(!nextEnabled);
-                if (GUI.Button(nextRect, nextContent, nextStyle))
-                    NavigateForward();
-                EditorGUI.EndDisabledGroup();
-            }
-
-            var isRepaint = Event.current.type == EventType.Repaint;
-            if (isRepaint)
-            {
-                var black = gui.blackBoldTextStyle;
-                var white = gui.whiteBoldTextStyle;
-
-                var rowRect = guiRect;
-#if UNITY_EDITOR_WIN
-                rowRect.x -= 3;
-                rowRect.y -= 5;
-#else
-                rowRect.y -= 7;
-#endif
-
-                var no = false;
-                var prevRect = rowRect;
-                var prevContent = gui.prevGlyphContent;
-                prevRect.x += 10;
-                prevRect.size = black.CalcSize(prevContent);
-                EditorGUI.BeginDisabledGroup(!prevEnabled);
-                white.Draw(prevRect, prevContent, no, no, no, no);
-                prevRect.y -= 1;
-                black.Draw(prevRect, prevContent, no, no, no, no);
-                EditorGUI.EndDisabledGroup();
-
-                var nextRect = rowRect;
-                var nextContent = gui.nextGlyphContent;
-                nextRect.x += 42;
-                nextRect.size = black.CalcSize(nextContent);
-                EditorGUI.BeginDisabledGroup(!nextEnabled);
-                white.Draw(nextRect, nextContent, no, no, no, no);
-                nextRect.y -= 1;
-                black.Draw(nextRect, nextContent, no, no, no, no);
-                EditorGUI.EndDisabledGroup();
             }
         }
 
