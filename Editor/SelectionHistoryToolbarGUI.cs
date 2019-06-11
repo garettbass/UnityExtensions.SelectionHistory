@@ -2,7 +2,12 @@ using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+
+#if UNITY_2019_1_OR_NEWER
+using UnityEngine.UIElements;
+#else
 using UnityEngine.Experimental.UIElements;
+#endif // UNITY_2018_1_OR_NEWER
 
 namespace UnityExtensions
 {
@@ -132,7 +137,13 @@ namespace UnityExtensions
             var prevEnabled = SelectionHistory.CanNavigateBackward();
             var nextEnabled = SelectionHistory.CanNavigateForward();
 
+
+#if UNITY_2019_1_OR_NEWER
+            var guiRect = new Rect(400, 5, 32, 22);
+#else
             var guiRect = new Rect(370, 5, 32, 22);
+#endif // UNITY_2018_1_OR_NEWER
+
             var prevRect = guiRect;
             var nextRect = guiRect;
             nextRect.x += guiRect.width;

@@ -4,7 +4,12 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+
+#if UNITY_2019_1_OR_NEWER
+using UnityEngine.UIElements;
+#else
 using UnityEngine.Experimental.UIElements;
+#endif // UNITY_2018_1_OR_NEWER
 
 using Object = UnityEngine.Object;
 
